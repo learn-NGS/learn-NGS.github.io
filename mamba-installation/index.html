@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mamba for NGS Workflows</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #f8f8f8;
+            color: #333;
+        }
+        header {
+            background: #4CAF50;
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+        }
+        main {
+            max-width: 900px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2E7D32;
+        }
+        h1 { margin-bottom: 0.5rem; }
+        h2 { margin-top: 1.5rem; }
+        h3 { margin-top: 1rem; }
+        ul {
+            margin-left: 1.5rem;
+        }
+        code {
+            background: #eee;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        pre {
+            background: #f0f0f0;
+            padding: 1rem;
+            border-left: 4px solid #4CAF50;
+            overflow-x: auto;
+        }
+        footer {
+            text-align: center;
+            padding: 1rem;
+            background: #f1f1f1;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Why Mamba is the Must-Have Tool for Next-Generation Sequencing (NGS) Workflows</h1>
+    </header>
+    <main>
+        <p>Conda has long served as a dependable, general-purpose package and environment management system, permitting users to manage multiple isolated and reproducible environments for installing scientific software. However, for bioinformaticians and data scientists dealing with complex Next-Generation Sequencing (NGS) pipelines, efficiency and speed are paramount. This is where Mamba—and its leaner cousin, Micromamba—dramatically outperform the traditional <strong>Conda</strong> and <strong>Anaconda</strong> distributions.</p>
+
+        <h2>Understanding the Landscape: Conda, Anaconda, and Miniconda</h2>
+        <ul>
+            <li><strong>Conda:</strong> Core package manager, portable and OS-agnostic.</li>
+            <li><strong>Anaconda:</strong> Full Python scientific distribution with extra packages, larger in size.</li>
+            <li><strong>Miniconda:</strong> Conda + Python only, smaller and faster for production environments.</li>
+        </ul>
+
+        <h2>The Need for Speed: Mamba’s Core Advantage</h2>
+        <p>Mamba is a <strong>fast drop-in replacement for Conda</strong>, reimplemented in C++ with parallel computing and optimized dependency resolution.</p>
+        <h3>Key Advantages</h3>
+        <ul>
+            <li><strong>C++ Optimizations & Parallel Computing:</strong> Significantly faster installation times.</li>
+            <li><strong>Efficient Dependency Resolution:</strong> Handles complex trees quickly.</li>
+            <li><strong>Better Error Handling:</strong> Clearer messages than Conda.</li>
+        </ul>
+
+        <h2>Mamba in Action: Massive Time Gains</h2>
+        <ul>
+            <li>Medaka project environment: Mamba - 1m 9s, Conda - 8m 14s.</li>
+            <li>Smaller pinned environments: Mamba consistently faster.</li>
+            <li>Minimal resources: Miniconda failed on 1 CPU / 1GB RAM, Mamba succeeded.</li>
+        </ul>
+
+        <h2>Micromamba: The Ultimate Tool for Minimalist Production</h2>
+        <ul>
+            <li><strong>Standalone Binary:</strong> No dependency on Conda.</li>
+            <li><strong>Minimal Footprint:</strong> No default Python.</li>
+            <li><strong>Tiny Download Size:</strong> ~13 MiB, ideal for lean Docker images.</li>
+        </ul>
+        <p>Micromamba is best for CI or minimalistic deployments; Mamba is recommended for daily use.</p>
+
+        <h2>Installing Mamba via Miniforge</h2>
+        <p>To set up Mamba efficiently, download and install Miniforge (a minimal Conda distribution) and then install Mamba:</p>
+        <pre><code># Download Miniforge
+wget https://github.com/conda-forge/miniforge/releases/download/25.9.1-0/Miniforge3-25.9.1-0-Linux-x86_64.sh
+
+# Make the script executable
+chmod +x Miniforge3-25.9.1-0-Linux-x86_64.sh
+
+# Run the installation script
+./Miniforge3-25.9.1-0-Linux-x86_64.sh
+
+# Follow prompts:
+# Press Enter, type yes, Enter, yes
+
+# Reload bash configuration
+source ~/.bashrc</code></pre>
+
+        <hr>
+        <p>Choosing Mamba over Conda is like upgrading from a manual-focus camera to an auto-focus burst-mode camera: one resolves complex dependencies faster and ensures you capture critical results without delays.</p>
+    </main>
+    <footer>
+        &copy; 2025 learn-NGS
+    </footer>
+</body>
+</html>
