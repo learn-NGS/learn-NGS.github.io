@@ -2,13 +2,125 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Learn NGS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn NGS | Home</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Animate.css for subtle animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f7fa;
+            color: #333;
+        }
+        header {
+            background: #0d47a1;
+            color: #fff;
+            padding: 2rem 1rem;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            animation: fadeInDown 1s;
+        }
+        header p {
+            font-size: 1.2rem;
+            margin-top: 0.5rem;
+            animation: fadeInDown 1.5s;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .subpages {
+            list-style: none;
+            padding: 0;
+        }
+        .subpages li {
+            background: #fff;
+            margin: 1rem 0;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .subpages li:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .subpages a {
+            text-decoration: none;
+            color: #0d47a1;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* FadeIn animations for list items */
+        .animate-item {
+            opacity: 0;
+            animation: fadeInUp 0.8s forwards;
+        }
+        .animate-item:nth-child(1){ animation-delay: 0.2s; }
+        .animate-item:nth-child(2){ animation-delay: 0.4s; }
+        .animate-item:nth-child(3){ animation-delay: 0.6s; }
+        .animate-item:nth-child(4){ animation-delay: 0.8s; }
+        .animate-item:nth-child(5){ animation-delay: 1s; }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to Learn NGS</h1>
-    <ul>
-        <li><a href="mamba-installation/index.html">Mamba Installation Guide</a></li>
-        <!-- Add more links to other projects/pages here -->
-    </ul>
+
+    <!-- Header Section -->
+    <header>
+        <h1>Learn NGS</h1>
+        <p>Your central hub for bioinformatics workflows, tools, and tutorials</p>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <h2>Available Pages</h2>
+	<p>Click a page to explore its content.</p>
+
+        <!-- List of subpages -->
+        <ul class="subpages">
+            <li class="animate-item"><a href="mamba-installation/index.html">Mamba Installation Guide</a></li>
+            <!-- Example for future pages:
+            <li class="animate-item"><a href="rna-seq-guide/index.html">RNA-Seq Workflow</a></li>
+            <li class="animate-item"><a href="chip-seq-guide/index.html">ChIP-Seq Analysis</a></li>
+            -->
+        </ul>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2025 Learn NGS | <a href="https://github.com/learn-NGS" target="_blank">GitHub</a>
+    </footer>
+
 </body>
 </html>
