@@ -1,0 +1,13 @@
+############################################################################################################
+#developed & standardised by Harish V G, for queries mail to harishvg2002@gmail.com
+
+###########################################################################################################
+#create an environment to install all the tools
+mamba create -n gvar python=3.10
+
+#activate the environment
+mamba activate gvar
+
+#install required tools
+mamba install -c bioconda -c conda-forge fastqc trimmomatic pigz sra-tools bwa samtools picard gatk4
+

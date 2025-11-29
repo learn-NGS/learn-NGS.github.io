@@ -1,0 +1,27 @@
+############################################################################################################
+#developed & standardised by Harish V G, for queries mail to harishvg2002@gmail.com
+
+###########################################################################################################
+#The below steps are used to download mamba package to download all bioinformatic tools faster
+#source: https://github.com/conda-forge/miniforge/releases/tag/25.9.1-0
+
+############################################################################################################
+#download mamba 
+wget https://github.com/conda-forge/miniforge/releases/download/25.9.1-0/Miniforge3-25.9.1-0-Linux-x86_64.sh
+
+#permission to execute a bash script
+chmod +x Miniforge3-25.9.1-0-Linux-x86_64.sh
+
+#execute the bash script
+./Miniforge3-25.9.1-0-Linux-x86_64.sh
+
+#options
+Enter
+yes
+Enter
+yes
+
+#source the bashrc file
+source ~/.bashrc
+
+############################################################################################################

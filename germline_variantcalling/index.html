@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Germline Variant Calling Pipeline</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #f8f8f8;
+            color: #333;
+        }
+        header {
+            background: #4CAF50;
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+        }
+        main {
+            max-width: 900px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2E7D32;
+        }
+        h1 { margin-bottom: 0.5rem; }
+        h2 { margin-top: 1.5rem; }
+        h3 { margin-top: 1rem; }
+        ul {
+            margin-left: 1.5rem;
+        }
+        code {
+            background: #eee;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        pre {
+            background: #f0f0f0;
+            padding: 1rem;
+            border-left: 4px solid #4CAF50;
+            overflow-x: auto;
+        }
+        .info-box {
+            background: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .warning-box {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        footer {
+            text-align: center;
+            padding: 1rem;
+            background: #f1f1f1;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .step-number {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Germline Variant Calling Pipeline</h1>
+        <p>Complete workflow for detecting germline variants using GATK Best Practices (hg38)</p>
+    </header>
+    <main>
+        <div class="info-box">
+            <strong>Author:</strong> Harish V G<br>
+            <strong>Contact:</strong> harishvg2002@gmail.com<br>
+            <strong>Reference Genome:</strong> hg38 (Homo sapiens assembly 38)
+        </div>
+
+        <h2>Overview</h2>
+        <p>This pipeline implements the GATK Best Practices workflow for germline variant calling on whole genome sequencing (WGS) or whole exome sequencing (WES) data. It processes raw FASTQ files through quality control, alignment, preprocessing, and variant calling stages to produce high-quality variant calls in VCF format.</p>
+
+        <h2>Pipeline Workflow</h2>
+        <p>The pipeline consists of six major steps:</p>
+        <ol>
+            <li>Download raw FASTQ files from SRA</li>
+            <li>Quality control assessment with FastQC</li>
+            <li>Read trimming and adapter removal</li>
+            <li>Read alignment to reference genome using BWA-MEM</li>
+            <li>BAM file processing (sorting, deduplication, base recalibration)</li>
+            <li>Variant calling with GATK HaplotypeCaller</li>
+        </ol>
+
+        <h2>Prerequisites</h2>
+        
+        <h3><span class="step-number">1</span>Install Mamba</h3>
+        <p>First, install Mamba package manager for faster dependency resolution:</p>
+        <pre><code># Download Miniforge
+wget https://github.com/conda-forge/miniforge/releases/download/25.9.1-0/Miniforge3-25.9.1-0-Linux-x86_64.sh
+
+# Make executable and run
+chmod +x Miniforge3-25.9.1-0-Linux-x86_64.sh
+./Miniforge3-25.9.1-0-Linux-x86_64.sh
+
+# Follow installation prompts (Enter, yes, Enter, yes)
+
+# Reload bash configuration
+source ~/.bashrc</code></pre>
+
+        <h3><span class="step-number">2</span>Create Environment and Install Tools</h3>
+        <p>Create a dedicated environment named "gvar" and install all required bioinformatics tools:</p>
+        <pre><code># Create environment with Python 3.10
+mamba create -n gvar python=3.10
+
+# Activate environment
+mamba activate gvar
+
+# Install all required tools
+mamba install -c bioconda -c conda-forge \
+    fastqc \
+    trimmomatic \
+    pigz \
+    sra-tools \
+    bwa \
+    samtools \
+    picard \
+    gatk4 \
+    bcftools -y</code></pre>
+
+        <h3>Required Tools</h3>
+        <ul>
+            <li><strong>sra-tools:</strong> Download FASTQ files from NCBI SRA</li>
+            <li><strong>pigz:</strong> Parallel gzip compression</li>
+            <li><strong>FastQC:</strong> Quality control reports for raw reads</li>
+            <li><strong>Trimmomatic:</strong> Read trimming and adapter removal</li>
+            <li><strong>BWA:</strong> Burrows-Wheeler Aligner for read mapping</li>
+            <li><strong>SAMtools:</strong> SAM/BAM file manipulation</li>
+            <li><strong>Picard:</strong> BAM processing utilities</li>
+            <li><strong>GATK4:</strong> Genome Analysis Toolkit for variant calling</li>
+            <li><strong>BCFtools:</strong> VCF file manipulation</li>
+        </ul>
+
+        <h3><span class="step-number">3</span>Setup Directory Structure</h3>
+        <pre><code>mkdir -p ~/input
+mkdir -p ~/results/fastqc
+mkdir -p ~/results/trim
+mkdir -p ~/results/reference
+mkdir -p ~/results/alignment
+mkdir -p ~/results/bam
+mkdir -p ~/results/vcf</code></pre>
+
+        <h3><span class="step-number">4</span>Download Reference Files</h3>
+        <p>Download the hg38 reference genome and known variant sites from the Broad Institute:</p>
+        <pre><code>cd ~/results/reference
+
+# Download hg38 bundle (reference genome + known variants)
+wget -c \
+  https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.fasta* \
+  https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dict \
+  https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dbsnp138.vcf \
+  https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dbsnp138.vcf.idx \
+  https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.known_indels.vcf.gz* \
+  https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Mills_and_1000G_gold_standard.indels.hg38.vcf.gz* \
+  https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/1000G_phase1.snps.high_confidence.hg38.vcf.gz* \
+  https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/1000G_omni2.5.hg38.vcf.gz* \
+  https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/hapmap_3.3.hg38.vcf.gz* \
+  https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Axiom_Exome_Plus.genotypes.all_populations.poly.hg38.vcf.gz* \
+  https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/1000G.phase3.integrated.sites_only.no_MATCHED_REV.hg38.vcf* \
+  https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/wgs_calling_regions.hg38.interval_list</code></pre>
+
+        <div class="warning-box">
+            <strong>Note:</strong> The reference files are large (~3GB for genome FASTA + ~10GB for all known sites). Ensure you have sufficient disk space and a stable internet connection.
+        </div>
+
+        <h2>Running the Pipeline</h2>
+
+        <h3>Pipeline Script Overview</h3>
+        <p>The <code>run_pipeline.sh</code> script automates the entire workflow. Key parameters to modify:</p>
+        <ul>
+            <li><strong>THREADS:</strong> Number of CPU threads (default: 36)</li>
+            <li><strong>SAMPLE:</strong> SRA accession number (default: SRR622461)</li>
+            <li><strong>REF:</strong> Path to reference genome FASTA</li>
+        </ul>
+
+        <h3>Execute the Pipeline</h3>
+        <pre><code># Make script executable
+chmod +x run_pipeline.sh
+
+# Run pipeline
+bash run_pipeline.sh</code></pre>
+
+        <h2>Pipeline Steps in Detail</h2>
+
+        <h3>Step 1: Download FASTQ Files</h3>
+        <p>Downloads paired-end reads from SRA and compresses them using parallel gzip:</p>
+        <pre><code>fasterq-dump SRR622461
+pigz -p 36 SRR622461*</code></pre>
+
+        <h3>Step 2: Quality Control</h3>
+        <p>Generates quality reports for raw reads:</p>
+        <pre><code>fastqc -t 36 ~/input/SRR622461_1.fastq.gz ~/input/SRR622461_2.fastq.gz -o ~/results/fastqc</code></pre>
+
+        <h3>Step 3: Read Trimming</h3>
+        <p>Removes adapters and low-quality bases using Trimmomatic:</p>
+        <pre><code>trimmomatic PE -threads 36 -phred33 \
+  input_1.fastq.gz input_2.fastq.gz \
+  output_1_paired.fq.gz output_1_unpaired.fq.gz \
+  output_2_paired.fq.gz output_2_unpaired.fq.gz \
+  ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 \
+  LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:36</code></pre>
+
+        <h3>Step 4: Read Alignment</h3>
+        <p>Aligns trimmed reads to the reference genome using BWA-MEM:</p>
+        <pre><code>bwa mem -t 36 reference.fasta \
+  trimmed_1.fq.gz trimmed_2.fq.gz \
+  > aligned.sam</code></pre>
+
+        <h3>Step 5: BAM Processing</h3>
+        <p>Comprehensive BAM file processing pipeline:</p>
+        
+        <h4>5.1 Convert and Sort</h4>
+        <pre><code>samtools view -bS aligned.sam > aligned.bam
+samtools sort aligned.bam -o aligned.sorted.bam
+samtools index aligned.sorted.bam</code></pre>
+
+        <h4>5.2 Add Read Groups</h4>
+        <pre><code>picard AddOrReplaceReadGroups \
+  I=aligned.sorted.bam \
+  O=aligned.rg.bam \
+  RGID=sample RGLB=lib1 RGPL=ILLUMINA RGPU=unit1 RGSM=sample</code></pre>
+
+        <h4>5.3 Mark Duplicates</h4>
+        <pre><code>gatk MarkDuplicates \
+  -I aligned.rg.bam \
+  -O aligned.dedup.bam \
+  -M duplicates.metrics \
+  --REMOVE_DUPLICATES true</code></pre>
+
+        <h4>5.4 Base Quality Score Recalibration (BQSR)</h4>
+        <pre><code># Generate recalibration table
+gatk BaseRecalibrator \
+  -I aligned.dedup.bam \
+  -R reference.fasta \
+  --known-sites dbsnp138.vcf \
+  --known-sites 1000G_phase1.snps.vcf.gz \
+  --known-sites Mills_indels.vcf.gz \
+  -O recal_data.table
+
+# Apply recalibration
+gatk ApplyBQSR \
+  -R reference.fasta \
+  -I aligned.dedup.bam \
+  --bqsr-recal-file recal_data.table \
+  -O recal.bam</code></pre>
+
+        <h3>Step 6: Variant Calling</h3>
+        <p>Call variants using GATK HaplotypeCaller:</p>
+        <pre><code>gatk HaplotypeCaller \
+  -R reference.fasta \
+  -I recal.bam \
+  -O output.raw.vcf.gz</code></pre>
+
+        <div class="info-box">
+            <strong>For Joint Calling:</strong> To combine multiple samples for joint genotyping, use the <code>-ERC GVCF</code> flag with HaplotypeCaller to generate GVCF files, then use <code>GenotypeGVCFs</code> for joint calling.
+        </div>
+
+        <h2>Output Files</h2>
+        <ul>
+            <li><strong>~/results/fastqc/</strong> - Quality control reports (HTML)</li>
+            <li><strong>~/results/trim/</strong> - Trimmed FASTQ files</li>
+            <li><strong>~/results/alignment/</strong> - Aligned SAM files</li>
+            <li><strong>~/results/bam/</strong> - Processed BAM files</li>
+            <li><strong>~/results/vcf/</strong> - Final variant calls (VCF format)</li>
+        </ul>
+
+        <h2>Expected Runtime</h2>
+        <p>For a typical 30x WGS sample (SRR622461) with 36 threads:</p>
+        <ul>
+            <li>Download: 30-60 minutes</li>
+            <li>QC: 10-15 minutes</li>
+            <li>Trimming: 20-30 minutes</li>
+            <li>Alignment: 2-4 hours</li>
+            <li>BAM processing: 1-2 hours</li>
+            <li>Variant calling: 3-6 hours</li>
+        </ul>
+        <p><strong>Total:</strong> ~8-12 hours for complete pipeline</p>
+
+        <h2>Troubleshooting</h2>
+        <h3>Common Issues</h3>
+        <ul>
+            <li><strong>Out of memory errors:</strong> Reduce thread count or increase Java heap size</li>
+            <li><strong>Reference file errors:</strong> Ensure all reference files are downloaded completely</li>
+            <li><strong>SRA download failures:</strong> Check network connection and SRA accession validity</li>
+            <li><strong>GATK errors:</strong> Verify BAM files have proper read groups and are indexed</li>
+        </ul>
+
+        <h2>Next Steps</h2>
+        <p>After generating raw variant calls, you should perform:</p>
+        <ol>
+            <li><strong>Variant Quality Score Recalibration (VQSR)</strong> - For filtering variants</li>
+            <li><strong>Variant annotation</strong> - Using tools like SnpEff, VEP, or ANNOVAR</li>
+            <li><strong>Variant filtration</strong> - Apply hard filters or machine learning approaches</li>
+            <li><strong>Downstream analysis</strong> - Population genetics, disease association, etc.</li>
+        </ol>
+
+        <h2>References</h2>
+        <ul>
+            <li><a href="https://gatk.broadinstitute.org/hc/en-us/sections/360007226651-Best-Practices-Workflows" target="_blank">GATK Best Practices</a></li>
+            <li><a href="https://github.com/harishvg24/germline_variantcalling" target="_blank">GitHub Repository</a></li>
+        </ul>
+
+        <hr>
+        <p><strong>Contact:</strong> For queries or issues, contact Harish V G at harishvg2002@gmail.com</p>
+    </main>
+    <footer>
+        &copy; 2025 learn-NGS | Developed by Harish V G
+    </footer>
+</body>
+</html>
